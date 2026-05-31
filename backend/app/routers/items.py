@@ -44,7 +44,7 @@ async def add_new_item(
         file_path = os.path.join(UPLOAD_DIR, safe_filename)
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(photo.file, buffer)
-        file_url = f"http://127.0.0.1:8000/static/uploads/products/{safe_filename}"
+        file_url = f"https://evsu-igp-system.onrender.com/static/uploads/products/{safe_filename}"
 
     new_item = models.Item(
         item_name=item_name,
@@ -101,7 +101,7 @@ async def update_item(
         file_path = os.path.join(UPLOAD_DIR, safe_filename)
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(photo.file, buffer)
-        item.item_photo = f"http://127.0.0.1:8000/static/uploads/products/{safe_filename}"
+        item.item_photo = f"https://evsu-igp-system.onrender.com/static/uploads/products/{safe_filename}"
 
     audit.log_action(
         db=db,
