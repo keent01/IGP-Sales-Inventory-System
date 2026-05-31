@@ -12,7 +12,7 @@ from app.core import database
 from . import models, schemas
 from .schemas import SaleSchema
 from app.core import database
-from app.core.database import get_db
+from app.core.database import get_db, engine, Base
 from jose import JWTError, jwt
 from app.routers import dashboard, items, sales, reports, users, audit, auth, backups
 from app.routers.auth import get_current_user
@@ -20,6 +20,7 @@ from contextlib import asynccontextmanager
 from apscheduler.schedulers.background import BackgroundScheduler
 from app.services.backup import perform_automated_backup
 
+Base.metadata.create_all(bind=engine)
 # Define the lifespan manager
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -51,6 +52,7 @@ app.include_router(backups.router)
 
 # Enable CORS so your HTML file can talk to this API
 origins = [
+    "https://evsu-igp-system.onrender.com",
     "http://127.0.0.1:5500",
     "http://localhost:5500",
     "*"
