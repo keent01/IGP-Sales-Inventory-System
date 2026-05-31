@@ -58,6 +58,9 @@ async def add_new_item(
     )
 
     db.add(new_item)
+    db.commit()
+    db.refresh(new_item)
+    db.flush()
 
     audit.log_action(
         db=db,
@@ -68,8 +71,7 @@ async def add_new_item(
         reason=f"Added new item: {item_name} (Initial Qty: {stock_quantity})"
     )
 
-    db.commit()
-    db.refresh(new_item)
+    
     return {"status": "success", "data": new_item}
 
 @router.put("/{item_id}")
