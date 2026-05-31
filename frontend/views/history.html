@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales History - EVSU-OC IGP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-[#F8F9FA] flex flex-row min-h-screen font-['Poppins']">
+    <div id="sidebar-container"></div>
+    <main class="flex-1">
+        <div id="header-container"></div>
+        <div class="p-6 lg:p-8">
+             <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">Sales History</h1>
+            <p class="text-gray-500">Comprehensive log of all IGP revenue and transactions.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <div class="flex items-center gap-4">
+                    <div class="p-3 bg-green-50 text-green-600 rounded-xl"><i data-lucide="banknote"></i></div>
+                    <div>
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total Revenue</p>
+                        <h3 id="statTotalSales" class="text-2xl font-black text-gray-800">₱0.00</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <div class="flex items-center gap-4">
+                    <div class="p-3 bg-blue-50 text-blue-600 rounded-xl"><i data-lucide="package"></i></div>
+                    <div>
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Items Sold</p>
+                        <h3 id="statItemsSold" class="text-2xl font-black text-gray-800">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <div class="flex items-center gap-4">
+                    <div class="p-3 bg-amber-50 text-amber-600 rounded-xl"><i data-lucide="award"></i></div>
+                    <div>
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Most Sold Item</p>
+                        <h3 id="statMostSold" class="text-xl font-black text-gray-800 truncate">N/A</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6 space-y-4">
+            <div class="flex flex-wrap gap-4 items-end">
+                <div class="flex-1 min-w-[250px]">
+                    <label class="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Search Record</label>
+                    <div class="relative">
+                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4"></i>
+                        <input type="text" id="histSearch" placeholder="OR Number or Student Name..." class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#800000]">
+                    </div>
+                </div>
+
+                <div class="w-full md:w-48">
+                    <select id="filterCategory" name="category" 
+                        class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 focus:bg-white focus:ring-2 focus:ring-[#800000] outline-none appearance-none cursor-pointer transition-all">
+                        <option value="">All Categories</option>
+                        <option value="Uniforms">Uniforms</option>
+                        <option value="Neckties">Neckties</option>
+                        <option value="PE Uniforms">PE Uniforms</option>
+                        <option value="Accessories">Accessories</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Program</label>
+                    <select id="filterProgram" class="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#800000]">
+                        <option value="">All Programs</option>
+                        <option value="BSIT">BSIT</option>
+                        <option value="BSCE">BSCE</option>
+                        <option value="BSED">BSED</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase mb-1 block">From</label>
+                    <input type="date" id="dateFrom" class="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#800000]">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase mb-1 block">To</label>
+                    <input type="date" id="dateTo" class="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#800000]">
+                </div>
+                <button id="clearFiltersBtn" class="bg-[#800000] text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-[#600000] transition-all">
+                    Clear Filters
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <table class="w-full text-left">
+                <thead class="bg-gray-50 border-b border-gray-100">
+                    <tr class="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                        <th class="px-6 py-4">Date</th>
+                        <th class="px-6 py-4">OR Number</th>
+                        <th class="px-6 py-4">Student & Program</th>
+                        <th class="px-6 py-4">Items & Size</th>
+                        <th class="px-6 py-4 text-center">Qty</th>
+                        <th class="px-6 py-4">Total Amount</th>
+                        <th class="px-6 py-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody" class="text-sm divide-y divide-gray-50">
+                    </tbody>
+            </table>
+        </div>
+
+        </div>
+    </main>
+
+    <div id="receiptModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center backdrop-blur-sm transition-all">
+    <div class="bg-white w-full max-w-sm rounded-xl shadow-2xl overflow-hidden flex flex-col">
+        <div class="bg-[#800000] p-4 text-center text-white relative">
+            <h3 class="font-bold text-lg">Transaction Receipt</h3>
+            <button onclick="closeReceiptModal()" class="absolute top-4 right-4 text-white/80 hover:text-white">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        
+        <div class="p-6 bg-[#F8F9FA] font-mono text-sm text-gray-700 flex-1 overflow-y-auto">
+                <div class="text-center mb-4">
+                    <div class="font-bold text-base text-black">EVSU-OC IGP</div>
+                    <div class="text-xs text-gray-500">Official Receipt</div>
+                </div>
+                
+                <div class="border-t border-b border-dashed border-gray-300 py-3 mb-4 space-y-1">
+                    <div class="flex justify-between">
+                        <span>OR No:</span> <span id="rcptOrNumber" class="font-bold text-black"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Date:</span> <span id="rcptDate"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Cashier:</span> <span id="rcptCashier"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Student:</span> <span id="rcptStudent"></span>
+                    </div>
+                </div>
+
+                <div class="font-bold text-black mb-2">ITEMS:</div>
+                <div id="rcptItems" class="space-y-2 mb-4">
+                    </div>
+
+                <div class="border-t border-dashed border-gray-300 pt-3">
+                    <div class="flex justify-between text-base font-black text-black mb-1">
+                        <span>TOTAL:</span>
+                        <span id="rcptTotal"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-4 bg-white border-t flex gap-2">
+                <button onclick="window.print()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-2 rounded-lg flex items-center justify-center gap-2 transition-colors">
+                    <i data-lucide="printer" class="w-4 h-4"></i> Print
+                </button>
+                <button onclick="closeReceiptModal()" class="flex-1 bg-[#800000] hover:bg-[#600000] text-white font-bold py-2 rounded-lg transition-colors">
+                    Done
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="editSaleModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center backdrop-blur-sm transition-all">
+        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="p-6 border-b flex justify-between items-center bg-amber-50 rounded-t-2xl">
+                <div>
+                    <h3 class="font-bold text-xl text-amber-800">Edit Transaction</h3>
+                    <p class="text-xs text-amber-600">Modify transaction details and items.</p>
+                </div>
+                <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button>
+            </div>
+
+            <div class="p-6 overflow-y-auto space-y-6">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Student Name</label>
+                        <input type="text" id="editStudentName" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Program</label>
+                        <input type="text" id="editProgram" class="w-full border rounded-lg px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">OR Number</label>
+                        <input type="text" id="editOrNumber" class="w-full border rounded-lg px-3 py-2 text-sm bg-gray-50">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Sale Date</label>
+                        <input type="datetime-local" id="editSaleDate" class="w-full border rounded-lg px-3 py-2 text-sm">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-black uppercase text-gray-400 mb-2">Items & Quantities</label>
+                    <div class="border rounded-xl overflow-hidden">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50 text-[10px] uppercase text-gray-400">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">Item</th>
+                                    <th class="px-4 py-2 text-center">Qty</th>
+                                    <th class="px-4 py-2 text-right">Price</th>
+                                    <th class="px-4 py-2 text-right">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody id="editItemsTableBody" class="divide-y">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Modification Reason <span class="text-red-500">*</span></label>
+                    <textarea id="editReason" placeholder="Explain why this change is being made..." class="w-full border rounded-lg px-3 py-2 text-sm h-20 focus:ring-2 focus:ring-amber-500 outline-none"></textarea>
+                </div>
+            </div>
+
+            <div class="p-6 border-t bg-gray-50 flex justify-between items-center rounded-b-2xl">
+                <div class="text-right">
+                    <span class="block text-[10px] font-black uppercase text-gray-400">Updated Total</span>
+                    <span id="editTotalAmount" class="text-2xl font-black text-gray-900">₱0.00</span>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="closeEditModal()" class="px-6 py-2 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-100 transition-all">Cancel</button>
+                    <button id="btnSaveEdit" class="bg-amber-600 text-white px-8 py-2 rounded-xl text-sm font-bold hover:bg-amber-700 shadow-lg shadow-amber-200 transition-all">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="voidSaleModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center backdrop-blur-sm transition-all">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+            <div class="p-6 border-b bg-red-50 flex items-center gap-3">
+                <div class="w-10 h-10 bg-red-100 text-red-600 rounded-full flex items-center justify-center">
+                    <i data-lucide="alert-triangle"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-xl text-red-800">Void Transaction</h3>
+                    <p class="text-xs text-red-600" id="voidModalSubtitle">OR Number</p>
+                </div>
+            </div>
+            
+            <div class="p-6 space-y-4">
+                <p class="text-sm text-gray-600">Are you sure you want to void this transaction? All associated items will be returned to inventory stock.</p>
+                <div>
+                    <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Reason for Voiding <span class="text-red-500">*</span></label>
+                    <textarea id="voidReason" placeholder="e.g., Entered wrong items, student cancelled order..." class="w-full border rounded-lg px-3 py-2 text-sm h-20 focus:ring-2 focus:ring-red-500 outline-none"></textarea>
+                </div>
+            </div>
+            
+            <div class="p-6 border-t bg-gray-50 flex justify-end gap-2">
+                <button onclick="closeVoidModal()" class="px-6 py-2 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-100 transition-all">Cancel</button>
+                <button id="btnConfirmVoid" class="bg-red-600 text-white px-8 py-2 rounded-xl text-sm font-bold hover:bg-red-700 shadow-lg shadow-red-200 transition-all">Confirm Void</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-container"></div>
+
+    <script src="../assets/js/api.js"></script>
+    <script src="../assets/js/utils.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/history.js"></script>
+    <script src="../assets/js/search-filter.js"></script>
+    <script src="../assets/js/components.js"></script>
+</body>
+</html>

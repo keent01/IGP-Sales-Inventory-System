@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - EVSU-OC IGP</title>
+    <link rel="icon" type="image/svg+xml" href="../assets/images/favicon.svg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>body { font-family: 'Poppins', sans-serif; }</style>
+</head>
+<body class="bg-gradient-to-br from-[#800000] to-[#600000] min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-sm">
+        <!-- Card Container -->
+        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
+            <!-- Header Section -->
+            <div class="bg-gradient-to-r from-[#800000] to-[#600000] px-8 py-12 text-center">
+                <img src="../assets/images/evsulogo.png" alt="EVSU Logo" class="mx-auto w-20 mb-4">
+                <h1 class="text-3xl font-bold text-white tracking-tight">EVSU-OC</h1>
+                <p class="text-sm text-red-100 mt-2 font-medium tracking-wide uppercase">IGP Sales & Inventory Management</p>
+            </div>
+
+            <!-- Form Section -->
+            <div class="p-8">
+                <div id="alertMessage" class="hidden mb-6 p-4 text-sm font-semibold rounded-lg border-l-4 animate-pulse"></div>
+
+                <form id="loginForm" class="space-y-6">
+                    <!-- Email Field -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Email Address</label>
+                        <input type="email" id="email" required placeholder="admin@evsu.edu.ph"
+                            class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium focus:bg-white focus:ring-2 focus:ring-[#800000] focus:border-transparent outline-none transition-all placeholder:text-gray-400">
+                    </div>
+
+                    <!-- Password Field -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Password</label>
+                        <input type="password" id="password" required placeholder="••••••••"
+                            class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium focus:bg-white focus:ring-2 focus:ring-[#800000] focus:border-transparent outline-none transition-all placeholder:text-gray-400">
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <button type="submit" id="loginBtn" class="w-full bg-gradient-to-r from-[#800000] to-[#600000] text-white py-3 rounded-lg font-bold text-sm uppercase tracking-wide hover:shadow-lg transition-all active:scale-95 flex justify-center items-center gap-2 mt-8">
+                        <span id="btnText">Log In</span>
+                    </button>
+
+                    <div class="text-right mt-1">
+                        <a href="#" id="forgotPasswordLink" class="text-xs font-semibold text-[#800000] hover:underline">Forgot Password?</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    
+    <div id="forgotPasswordModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl border border-gray-100">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gray-800">Account Recovery</h3>
+                <button type="button" id="closeModalBtn" class="text-gray-400 hover:text-gray-600 font-bold text-xl">&times;</button>
+            </div>
+            
+            <div id="modalAlert" class="hidden p-3 rounded-lg border text-sm mb-4"></div>
+
+            <div id="step1Container" class="space-y-4">
+                <p class="text-sm text-gray-600">Enter your institution email to receive a 6-digit verification code.</p>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Email Address</label>
+                    <input type="email" id="recoveryEmail" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[#800000]" placeholder="username@evsu.edu.ph">
+                </div>
+                <button type="button" id="sendOtpBtn" class="w-full bg-[#800000] text-white py-3 rounded-lg font-bold text-sm uppercase tracking-wide hover:bg-[#600000] transition-all">Send OTP</button>
+            </div>
+
+            <div id="step2Container" class="space-y-4 hidden">
+                <p class="text-sm text-gray-600">Enter the 6-digit code sent to your email and your new password.</p>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">6-Digit OTP</label>
+                    <input type="text" id="recoveryOtp" maxlength="6" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[#800000] tracking-widest font-bold text-center" placeholder="••••••">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1 mt-3">New Password</label>
+                    <input type="password" id="recoveryNewPassword" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[#800000]" placeholder="Enter new password">
+                </div>
+                <button type="button" id="resetPasswordBtn" class="w-full bg-green-700 text-white py-3 rounded-lg font-bold text-sm uppercase tracking-wide hover:bg-green-800 transition-all">Reset Password</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/api.js"></script>
+    <script src="../assets/js/login.js"></script>
+</body>
+</html>

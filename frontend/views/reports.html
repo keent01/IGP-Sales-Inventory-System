@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Reports - EVSU-OC IGP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        @media print {
+            #header-container, #sidebar-container, .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            main { margin: 0 !important; padding: 0 !important; width: 100% !important; }
+            .card { border: 1px solid #eee !important; box-shadow: none !important; }
+        }
+        .print-only { display: none; }
+    </style>
+</head>
+<body class="bg-[#F8F9FA] flex min-h-screen">
+    <div id="sidebar-container"></div>
+
+    <main class="flex-1 flex flex-col">
+        <div id="header-container"></div>
+        
+        <div class="print-only text-center mb-8 px-8 pt-8">
+            <h1 class="text-2xl font-bold text-[#800000]">EVSU-OC IGP FINANCIAL REPORT</h1>
+            <p class="text-gray-500 text-sm">Generated on: <span id="printDate"></span></p>
+            <hr class="mt-4 border-gray-200">
+        </div>
+
+        <div class="p-6 lg:p-8">
+            <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10 no-print">
+                
+                <div>
+                    <h1 class="text-3xl font-extrabold text-gray-800 tracking-tight">Financial Analytics</h1>
+                    <p class="text-gray-500">Real-time data visualization of IGP performance.</p>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-wrap gap-5 items-end mb-8">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Date Range Preset</label>
+                        <select id="reportDatePreset" class="bg-gray-50 border border-gray-200 text-gray-700 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-[#800000]">
+                            <option value="all_time" selected>All Time</option>
+                            <option value="today">Today</option>
+                            <option value="this_week">This Week</option>
+                            <option value="this_month">This Month</option>
+                            <option value="custom">Custom Range</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Start Date</label>
+                        <input type="date" id="reportDateFrom" readonly class="bg-gray-50 border border-gray-200 text-gray-700 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-[#800000] read-only:opacity-60 read-only:cursor-not-allowed">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">End Date</label>
+                        <input type="date" id="reportDateTo" readonly class="bg-gray-50 border border-gray-200 text-gray-700 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-[#800000] read-only:opacity-60 read-only:cursor-not-allowed">
+                    </div>
+                    
+                    <button id="generateReportBtn" class="ml-auto bg-[#800000] text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-md hover:bg-red-900 transition-all flex items-center gap-2">
+                        <i data-lucide="printer" class="w-4 h-4"></i>
+                        Print Report
+                    </button>
+                </div>
+
+            
+            </header>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+    
+    <div class="card bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between min-h-[140px]">
+        <div>
+            <div class="flex justify-between items-start mb-2">
+                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Gross Revenue</p>
+                <span class="bg-emerald-50 text-emerald-800 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md flex items-center gap-1 shadow-sm border border-emerald-100">
+                    <i data-lucide="trending-up" class="w-3 h-3 text-emerald-600"></i> Earnings
+                </span>
+            </div>
+            <h2 id="totalRev" class="text-2xl font-black text-[#800000] tracking-tight">₱0.00</h2>
+        </div>
+        <div class="flex justify-between items-center pt-3 border-t border-gray-50 text-xs mt-3">
+            <div>
+                <span class="text-gray-400 block text-[9px] uppercase font-black tracking-wider">Financial Window</span>
+                <span class="font-medium text-gray-600 text-[11px]">Selected Range</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between min-h-[140px]">
+        <div>
+            <div class="flex justify-between items-start mb-2">
+                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Items Sold</p>
+                <span class="bg-blue-50 text-blue-800 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md flex items-center gap-1 shadow-sm border border-blue-100">
+                    <i data-lucide="shopping-bag" class="w-3 h-3 text-blue-600"></i> Volume
+                </span>
+            </div>
+            <h2 id="itemsSold" class="text-2xl font-black text-gray-800 tracking-tight">0</h2>
+        </div>
+        <div class="flex justify-between items-center pt-3 border-t border-gray-50 text-xs mt-3">
+            <div>
+                <span class="text-gray-400 block text-[9px] uppercase font-black tracking-wider">Product Moving</span>
+                <span class="font-medium text-gray-600 text-[11px]">Total Units Fulfilled</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between min-h-[140px]">
+        <div>
+            <div class="flex justify-between items-start mb-2">
+                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Daily Avg</p>
+                <span class="bg-purple-50 text-purple-800 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md flex items-center gap-1 shadow-sm border border-purple-100">
+                    <i data-lucide="bar-chart-3" class="w-3 h-3 text-purple-600"></i> Velocity
+                </span>
+            </div>
+            <h2 id="dailyAvg" class="text-2xl font-black text-gray-800 tracking-tight">₱0.00</h2>
+        </div>
+        <div class="flex justify-between items-center pt-3 border-t border-gray-50 text-xs mt-3">
+            <div>
+                <span class="text-gray-400 block text-[9px] uppercase font-black tracking-wider">Run Rate</span>
+                <span class="font-medium text-gray-600 text-[11px]">Estimated Revenue / Day</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between min-h-[140px]">
+        <div>
+            <div class="flex justify-between items-start mb-2">
+                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Most Sold Item</p>
+                <span class="bg-amber-50 text-amber-800 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md flex items-center gap-1 shadow-sm border border-amber-100">
+                    <i data-lucide="award" class="w-3 h-3 text-amber-600"></i> Best Seller
+                </span>
+            </div>
+            <h2 id="topItemName" class="text-base font-extrabold text-gray-800 line-clamp-1 tracking-tight">---</h2>
+        </div>
+        <div class="flex justify-between items-center pt-3 border-t border-gray-50 text-xs mt-3">
+            <div>
+                <span class="text-gray-400 block text-[9px] uppercase font-black tracking-wider mb-0.5">Units Sold</span>
+                <span id="topItemQty" class="font-bold text-gray-700 bg-gray-100 px-2 py-0.5 rounded-md text-[11px]">0 sold</span>
+            </div>
+            <div class="text-right">
+                <span class="text-gray-400 block text-[9px] uppercase font-black tracking-wider mb-0.5">Gross Revenue</span>
+                <span id="topItemRev" class="font-black text-[#800000]">₱0.00</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+            <div class="card lg:col-span-2 bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-8 py-6 border-b border-gray-50 flex justify-between items-center">
+                    <h3 class="text-sm font-black text-gray-800 uppercase tracking-wider">Top Selling Products</h3>
+                </div>
+                <table class="w-full text-left">
+                    <thead class="bg-gray-50 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                        <tr>
+                            <th class="px-8 py-4">Product Name</th>
+                            <th class="px-8 py-4">Category</th>
+                            <th class="px-8 py-4 text-center">Qty Sold</th>
+                            <th class="px-8 py-4 text-right">Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody id="topProductsTable" class="divide-y divide-gray-50 text-sm">
+                        </tbody>
+                </table>
+            </div>
+
+            <div class="card bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                <h3 class="text-sm font-black text-gray-800 uppercase tracking-wider mb-8">Sales Distribution</h3>
+                <div class="h-[300px] flex items-center justify-center">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+                <div id="categoryLegend" class="mt-6 space-y-2">
+                    </div>
+            </div>
+        </div>
+
+        <div class="card bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-8 py-6 border-b border-gray-50 flex justify-between items-center">
+                <h3 class="text-sm font-black text-gray-800 uppercase tracking-wider">Daily Sales Breakdown</h3>
+            </div>
+            <table class="w-full text-left">
+                <thead class="bg-gray-50 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                    <tr>
+                        <th class="px-8 py-4">Date</th>
+                        <th class="px-8 py-4 text-center">Orders</th>
+                        <th class="px-8 py-4 text-center">Items Sold</th>
+                        <th class="px-8 py-4 text-right">Revenue</th>
+                    </tr>
+                </thead>
+                <tbody id="dailySalesTable" class="divide-y divide-gray-50 text-sm">
+                    </tbody>
+            </table>
+        </div>
+        </div>
+    </main>
+
+    <script src="../assets/js/utils.js"></script>
+    <script src="../assets/js/api.js"></script>
+    <script src="../assets/js/search-filter.js"></script>
+    <script src="../assets/js/components.js"></script>
+    <script src="../assets/js/reports.js"></script>
+</body>
+</html>

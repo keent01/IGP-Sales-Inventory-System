@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management - EVSU-OC IGP</title>
+    <link rel="icon" type="image/svg+xml" href="../assets/images/favicon.svg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script src="../assets/js/auth.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+    </style>
+</head>
+<body class="bg-[#F3F4F6] flex min-h-screen">
+
+    <div id="sidebar-container"></div>
+
+    <main class="flex-1 flex flex-col">
+        <div id="header-container"></div>
+
+        <div class="p-6 lg:p-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800">Inventory Management</h1>
+                    <p class="text-sm text-gray-500 mt-1">View and manage all EVSU-OC IGP products</p>
+                </div>
+                <div class="flex gap-3 w-full md:w-auto">
+                    <button type="button" onclick="openModal()" class="flex-1 md:flex-none bg-[#800000] text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-[#600000] transition-all shadow-md inline-flex items-center justify-center gap-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Add New Item
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-8">
+                <form id="inventoryFilterForm" class="flex flex-wrap md:flex-nowrap gap-4 items-center">
+                    
+                    <div class="relative flex-1 min-w-[250px]">
+                        <i data-lucide="search" class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400 w-5 h-5"></i>
+                        <input id="inventorySearch" type="text" name="search" placeholder="Search items by name..." 
+                            class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:ring-2 focus:ring-[#800000] focus:border-transparent outline-none transition-all">
+                    </div>
+
+                     <div class="w-full md:w-48">
+                        <select id="inventoryStatus" name="status" 
+                            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 focus:bg-white focus:ring-2 focus:ring-[#800000] outline-none appearance-none cursor-pointer transition-all">
+                            <option value="">All Statuses</option>
+                            <option value="in_stock">In Stock</option>
+                            <option value="low_stock">Low Stock</option>
+                            <option value="out_of_stock">Out of Stock</option>
+                        </select>
+                    </div>
+
+                    <div class="w-full md:w-48">
+                        <select id="inventoryCategory" name="category" 
+                            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 focus:bg-white focus:ring-2 focus:ring-[#800000] outline-none appearance-none cursor-pointer transition-all">
+                            <option value="">All Categories</option>
+                            <option value="Uniforms">Uniforms</option>
+                            <option value="Neckties">Neckties</option>
+                            <option value="PE Uniforms">PE Uniforms</option>
+                            <option value="Accessories">Accessories</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center gap-2 w-full md:w-auto">
+                        <button id="inventoryClear" type="button" class="bg-[#800000] text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-[#600000] transition-all shadow-sm flex-1 md:flex-none">
+                            Clear
+                        </button>
+                    </div>
+                    
+                </form>
+            </div>
+
+            <div id="inventoryGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div class="col-span-full py-20 text-center">
+                    <div class="spinner w-8 h-8 mx-auto mb-4"></div>
+                    <p class="text-gray-500 text-sm">Loading inventory items...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="modal-container"></div>
+    <script src="../assets/js/utils.js"></script>
+    <script src="../assets/js/api.js"></script>
+    <script src="../assets/js/search-filter.js"></script>
+    <script src="../assets/js/components.js"></script>
+    <script src="../assets/js/inventory.js"></script>
+</body>
+</html>
