@@ -77,8 +77,7 @@ async function handleChangePassword(event) {
             }
         }
 
-        // Target your FastAPI backend explicitly (port 8000)
-        const BACKEND_URL = 'http://127.0.0.1:8000';
+        const BACKEND_URL = 'https://evsu-igp-backend.onrender.com';
         const response = await fetch(`${BACKEND_URL}/api/users/change-password`, {
             method: 'POST',
             headers: {
