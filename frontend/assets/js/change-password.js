@@ -77,8 +77,7 @@ async function handleChangePassword(event) {
             }
         }
 
-        const BACKEND_URL = 'https://igp-sales-inventory-system-production.up.railway.app';
-        const response = await fetch(`${BACKEND_URL}/api/users/change-password`, {
+        const response = await apiFetch('/api/users/change-password', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

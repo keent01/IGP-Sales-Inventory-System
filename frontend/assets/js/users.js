@@ -1,3 +1,33 @@
+// This is your existing fetch call to the backend
+const response = await apiFetch('/api/users/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+});
+
+const result = await response.json();
+
+if (response.ok) {
+    // BACKEND SUCCESS! Now trigger the email via EmailJS
+    emailjs.send("service_yd9wo1u", "template_r2ozgi6", {
+        to_email: payload.email,
+        to_name: payload.full_name,
+        temporary_password: result.temporary_password // Make sure your backend returns this!
+    })
+    .then(() => {
+        console.log("Welcome email sent successfully!");
+        alert("User created and password emailed successfully!");
+        // Close modal and refresh table here
+    })
+    .catch((error) => {
+        console.error("EmailJS Failed:", error);
+        alert("User created, but failed to send email.");
+    });
+} else {
+    // Handle backend errors (e.g., email already exists)
+    alert(result.detail || "Failed to create user.");
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     if (user.role !== 'Admin') {
