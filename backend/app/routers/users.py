@@ -62,12 +62,13 @@ def create_user(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
     if db.query(models.User).filter(models.User.email == user_in.email).first():
         raise HTTPException(status_code=400, detail="Email already exists")
 
+    # 1. Generate the random password
     otp_password = generate_otp()
 
-    email_sent, email_error = send_otp_email(user_in.email, otp_password)
-    if not email_sent:
-        raise HTTPException(status_code=502, detail=f"Temporary password email failed: {email_error}")
-
+    # --- EMAIL SENDING COMPLETELY REMOVED ---
+    # We no longer attempt to send an email, preventing the 502 crash.
+    
+    # 2. Hash it and save to database
     hashed_password = auth.get_password_hash(otp_password)
 
     new_user = models.User(
@@ -83,9 +84,11 @@ def create_user(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_user)
 
+    # 3. Return the plain password directly back to the frontend
     return {
-        "message": "User created",
-        "email_sent": email_sent
+        "message": "User created successfully",
+        "email_sent": False,
+        "temporary_password": otp_password
     }
 
 @router.post("/change-password")
