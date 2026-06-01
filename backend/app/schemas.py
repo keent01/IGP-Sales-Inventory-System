@@ -26,7 +26,7 @@ class ChangePasswordRequest(BaseModel):
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
 
-class ResetPasswordWithOtpRequest(BaseModel):
+class ForgotPasswordConfirm(BaseModel):
     email: EmailStr
     otp: str
     new_password: str

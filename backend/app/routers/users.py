@@ -1,8 +1,7 @@
 import os, re
 import secrets
-import smtplib
-import string
-from email.message import EmailMessage
+import string, random
+from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
@@ -15,40 +14,6 @@ router = APIRouter(prefix="/api/users", tags=["users"])
 def generate_otp(length=12):
     characters = string.ascii_letters + string.digits + "!@#$%^&*()-_=+"
     return ''.join(secrets.choice(characters) for i in range(length))
-
-
-def send_otp_email(recipient: str, otp_password: str) -> tuple[bool, str]:
-    smtp_host = os.getenv("SMTP_HOST")
-    smtp_port = int(os.getenv("SMTP_PORT", 587))
-    smtp_user = os.getenv("SMTP_USER")
-    smtp_pass = os.getenv("SMTP_PASS")
-    smtp_from = os.getenv("SMTP_FROM") or smtp_user
-
-    if not smtp_host or not smtp_user or not smtp_pass:
-        return False, "SMTP_HOST, SMTP_USER, and SMTP_PASS must be configured to send email."
-
-    print(f"SMTP config: host={smtp_host!r}, port={smtp_port}, user={smtp_user!r}, from={smtp_from!r}")
-    msg = EmailMessage()
-    msg["Subject"] = "EVSU-OC IGP Temporary Password"
-    msg["From"] = smtp_from
-    msg["To"] = recipient
-    msg.set_content(
-        f"Hello {recipient},\n\n"
-        f"Your EVSU-OC IGP temporary password is: {otp_password}\n\n"
-        "Use this one-time password to sign in, then change your password immediately.\n\n"
-        "Thanks,\nEVSU-OC IGP Team"
-    )
-
-    try:
-        with smtplib.SMTP(smtp_host, smtp_port) as smtp:
-            smtp.starttls()
-            smtp.login(smtp_user, smtp_pass)
-            smtp.send_message(msg)
-        return True, "Email sent"
-    except Exception as error:
-        print("OTP email delivery failed:", error)
-        return False, str(error)
-
 
 def validate_evsu_email(email: str) -> None:
     if not email.lower().endswith("@evsu.edu.ph"):
@@ -86,43 +51,6 @@ def create_user(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
         "email_sent": False,
         "temporary_password": otp_password
     }
-
-@router.post("/change-password")
-def change_password(
-    payload: schemas.ChangePasswordRequest, 
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth.get_current_user)
-):
-    # --- NEW: Password Complexity Check ---
-    pwd = payload.new_password
-    try:
-        auth.validate_password_complexity(payload.new_password)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    # --------------------------------------
-
-    # 1. Check if the user is forced to change their password
-    is_first_login = current_user.force_password_change
-
-    # 2. If it is NOT their first login, strictly require the current password
-    if not is_first_login:
-        if not payload.current_password:
-            raise HTTPException(status_code=400, detail="Current password is required.")
-        
-        # Verify the current password matches the database
-        if not auth.verify_password(payload.current_password, current_user.password):
-            raise HTTPException(status_code=400, detail="Incorrect current password.")
-
-    # 3. Hash and save the new password
-    current_user.password = auth.get_password_hash(payload.new_password)
-    
-    # 4. Turn off the forced change flag
-    current_user.force_password_change = 0
-    
-    db.add(current_user)
-    db.commit()
-    
-    return {"status": "success", "message": "Password updated successfully!"}
 
 @router.get("/", response_model=list[schemas.UserOut])
 def get_all_users(db: Session = Depends(get_db)):

@@ -7,10 +7,11 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
-from app.schemas import ForgotPasswordRequest, ResetPasswordWithOtpRequest
+from app.schemas import ForgotPasswordRequest, ForgotPasswordConfirm 
 from pydantic import BaseModel, EmailStr
 from .. import models
 from app.core import database
+from app.core.database import get_db
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 # OAuth2 token endpoint used by the frontend login form
@@ -78,55 +79,71 @@ def get_current_user(db: Session = Depends(database.get_db), token: str = Depend
         raise credentials_exception
     return user
 
-@router.post("/forgot-password")
-def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(database.get_db)):
-    from .users import send_otp_email
-    
-    user = db.query(models.User).filter(models.User.email == payload.email, models.User.is_deleted == False).first()
+@router.post("/forgot-password-request")
+def forgot_password_request(
+    payload: ForgotPasswordRequest, 
+    db: Session = Depends(get_db)
+):
+    # 1. Verify the user exists in the system
+    user = db.query(models.User).filter(models.User.email == payload.email).first()
     if not user:
-        raise HTTPException(status_code=404, detail="No active account found with this email address.")
+        raise HTTPException(status_code=404, detail="No account registered with this email address.")
     
-    # 1. Generate a secure 6-digit numerical OTP (This is the RAW one)
-    raw_otp = "".join(random.choices(string.digits, k=6))
+    if user.is_deleted:
+        raise HTTPException(status_code=400, detail="This user account is currently inactive.")
+
+    # 2. Generate a secure 6-digit numeric OTP
+    generated_otp = "".join(random.choices(string.digits, k=6))
     
-    # 2. Hash it BEFORE saving! (Notice no 'auth.' prefix here)
-    user.reset_otp = get_password_hash(raw_otp)
+    # 3. Save the OTP and set the expiration time (e.g., 15 minutes from now)
+    user.reset_otp = generated_otp
     user.otp_expiry = datetime.utcnow() + timedelta(minutes=15)
+    
+    db.add(user)
     db.commit()
 
-    # 3. Send the RAW OTP via email
-    email_sent, email_error = send_otp_email(user.email, raw_otp)
-    if not email_sent:
-        raise HTTPException(status_code=502, detail=f"Failed to dispatch OTP verification email: {email_error}")
+    # 4. Return data back to frontend so EmailJS can intercept it
+    return {
+        "status": "success",
+        "full_name": user.full_name,
+        "otp": generated_otp
+    }
 
-    return {"status": "success", "message": "OTP verification code sent successfully!"}
+@router.post("/forgot-password-confirm")
+def forgot_password_confirm(
+    payload: ForgotPasswordConfirm, 
+    db: Session = Depends(get_db)
+):
+    # 1. Locate the user
+    user = db.query(models.User).filter(models.User.email == payload.email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User accounts out of sync.")
 
-# --- Step 2: Verify & Reset ---
-@router.post("/reset-password-with-otp")
-def reset_password_with_otp(payload: ResetPasswordWithOtpRequest, db: Session = Depends(database.get_db)):
-    user = db.query(models.User).filter(models.User.email == payload.email, models.User.is_deleted == False).first()
-    if not user or not user.reset_otp or not user.otp_expiry:
-        raise HTTPException(status_code=400, detail="Invalid request state. Please request a code first.")
+    # 2. Validate that the OTP matches
+    if not user.reset_otp or user.reset_otp != payload.otp:
+        raise HTTPException(status_code=400, detail="Invalid verification code.")
 
-    # Validate Expiration
-    if datetime.utcnow() > user.otp_expiry:
-        raise HTTPException(status_code=400, detail="The validation token has expired. Please try again.")
+    # 3. Verify the OTP has not expired
+    if user.otp_expiry and datetime.utcnow() > user.otp_expiry:
+        # If expired, wipe it clean so they can't keep guessing
+        user.reset_otp = None
+        user.otp_expiry = None
+        db.commit()
+        raise HTTPException(status_code=400, detail="OTP has expired. Please request a new one.")
 
-    # Check OTP Match Securely!
-    if not verify_password(payload.otp, user.reset_otp):
-        raise HTTPException(status_code=400, detail="The security code entered is incorrect.")
-
-    # Apply Complexity Guardrails
+    # 4. Run complexity check against your auth engine
     try:
         validate_password_complexity(payload.new_password)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    # Commit Changes & Clear OTP tracks
+    # 5. Hash new password, wipe out the OTP tokens, and reset forced change flag
     user.password = get_password_hash(payload.new_password)
-    user.force_password_change = False
     user.reset_otp = None
     user.otp_expiry = None
+    user.force_password_change = 0 
+    
+    db.add(user)
     db.commit()
 
-    return {"status": "success", "message": "Password updated successfully! You can now log in."}
+    return {"status": "success", "message": "Password recovered successfully!"}
