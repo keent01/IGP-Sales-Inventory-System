@@ -46,7 +46,7 @@ def restore_backup(
 
     db_user = os.getenv("DB_USER", "root")
     db_pass = os.getenv("DB_PASS", "")
-    db_name = os.getenv("DB_NAME", "evsu_igp")
+    db_name = os.getenv("DB_NAME", "evsu_igp_db")
 
     env = os.environ.copy()
     env["MYSQL_PWD"] = db_pass

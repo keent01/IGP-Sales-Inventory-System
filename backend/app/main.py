@@ -51,7 +51,7 @@ app.include_router(backups.router)
 
 # Enable CORS so your HTML file can talk to this API
 origins = [
-    "https://evsu-igp-system.onrender.com",
+    "https://igp-sales-inventory-system-production.up.railway.app",
     "http://127.0.0.1:5500",
     "http://localhost:5500",
     "*"
