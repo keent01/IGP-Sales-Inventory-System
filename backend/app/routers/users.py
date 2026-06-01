@@ -209,3 +209,33 @@ def delete_user(
     
     db.commit()
     return {"message": "User deactivated successfully"}
+
+@router.post("/{user_id}/reset-password")
+def admin_reset_password(
+    user_id: int, 
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    if current_user.role != "Admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+        
+    user = db.query(models.User).filter(models.User.user_id == user_id, models.User.is_deleted == False).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    # Generate random password and hash it
+    new_password = generate_otp()
+    user.password = auth.get_password_hash(new_password)
+    user.force_password_change = True # Forces them to change it on next login
+    
+    db.add(user)
+    
+    # Log the action
+    audit.log_action(db, current_user.user_id, "reset_password", "users", user_id, f"Admin reset password for {user.email}")
+    
+    db.commit()
+    
+    return {
+        "message": "Password reset successfully", 
+        "temporary_password": new_password
+    }
