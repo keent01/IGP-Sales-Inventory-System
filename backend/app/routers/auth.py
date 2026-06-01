@@ -153,11 +153,7 @@ def forgot_password_confirm(
     payload: ForgotPasswordConfirm,
     db:      Session = Depends(get_db),
 ):
-    """
-    Step 2 — Validate the OTP and update the user's password.
-    All checks (existence, OTP match, expiry, complexity) are enforced
-    server-side regardless of what the frontend already validated.
-    """
+    
     # 1. Locate the account
     user = db.query(models.User).filter(models.User.email == payload.email).first()
     if not user:
