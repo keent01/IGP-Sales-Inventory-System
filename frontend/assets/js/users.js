@@ -133,9 +133,14 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
             
             if (otpSuccessEl) otpSuccessEl.classList.remove('hidden');
             if (otpNoteEl) {
-                otpNoteEl.innerText = result.email_sent
-                    ? 'A temporary password has been emailed to the new user.'
-                    : 'Email delivery is not configured. Notify the user to request a password reset.';
+                // --- THIS IS THE NEW PART THAT SHOWS THE PASSWORD ON SCREEN ---
+                otpNoteEl.innerHTML = `
+                    <div class="mt-2 p-3 bg-amber-50 border border-amber-200 rounded text-amber-900 font-medium">
+                        User account created successfully!<br>
+                        <span class="text-xs text-gray-500 font-normal">Temporary Password:</span> 
+                        <strong class="text-sm font-mono tracking-wider text-red-700 bg-white px-2 py-0.5 rounded border border-gray-200 select-all">${result.temporary_password}</strong>
+                    </div>
+                `;
             }
             document.getElementById('userForm').classList.add('opacity-50', 'pointer-events-none');
         }
