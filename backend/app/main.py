@@ -19,6 +19,10 @@ from app.routers.auth import get_current_user
 from contextlib import asynccontextmanager
 from apscheduler.schedulers.background import BackgroundScheduler
 from app.services.backup import perform_automated_backup
+from app.core.database import engine
+from app import models
+
+models.Base.metadata.create_all(bind=engine)
 
 # Define the lifespan manager
 @asynccontextmanager
@@ -84,9 +88,6 @@ def load_dotenv_file():
 
 
 load_dotenv_file()
-
-# Initialize tables
-models.Base.metadata.create_all(bind=database.engine)
 
 @app.get("/")
 def root():
