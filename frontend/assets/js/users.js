@@ -7,17 +7,22 @@ document.addEventListener('DOMContentLoaded', () => {
     loadUsers();
 });
 
+let loadedUsers = []; // Store them globally for instant editing
+let userToDeleteId = null; // Tracks user ID for deletion
+
 async function loadUsers() {
     updateTableLoadingState(true);
     
     try {
         const users = await apiFetch('/api/users/');
-        loadedUsers = users; // Store them globally for instant editing
+        loadedUsers = users; 
         renderUserTable(users);
     } catch (error) {
         console.error("Error fetching users:", error);
         const tbody = document.getElementById('userTableBody');
-        tbody.innerHTML = `<tr><td colspan="5" class="py-10 text-center text-red-500 font-bold">Failed to load users. Please try again.</td></tr>`;
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="5" class="py-10 text-center text-red-500 font-bold">Failed to load users. Please try again.</td></tr>`;
+        }
     } finally {
         updateTableLoadingState(false);
     }
@@ -25,6 +30,7 @@ async function loadUsers() {
 
 function renderUserTable(users) {
     const tbody = document.getElementById('userTableBody');
+    if (!tbody) return;
 
     if (!users || users.length === 0) {
         tbody.innerHTML = `<tr><td colspan="5" class="py-20 text-center text-gray-400 italic">No users found in the system.</td></tr>`;
@@ -72,6 +78,8 @@ function renderUserTable(users) {
 
 function updateTableLoadingState(isLoading) {
     const tbody = document.getElementById('userTableBody');
+    if (!tbody) return;
+    
     if (isLoading) {
         tbody.innerHTML = `
             <tr>
@@ -84,7 +92,6 @@ function updateTableLoadingState(isLoading) {
             </tr>`;
     }
 }
-
 
 document.getElementById('userForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -120,10 +127,16 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
                 method: 'POST',
                 body: JSON.stringify(payload)
             });
-            document.getElementById('otpSuccess').classList.remove('hidden');
-            document.getElementById('otpNote').innerText = result.email_sent
-                ? 'A temporary password has been emailed to the new user.'
-                : 'Email delivery is not configured. Notify the user to request a password reset.';
+            
+            const otpSuccessEl = document.getElementById('otpSuccess');
+            const otpNoteEl = document.getElementById('otpNote');
+            
+            if (otpSuccessEl) otpSuccessEl.classList.remove('hidden');
+            if (otpNoteEl) {
+                otpNoteEl.innerText = result.email_sent
+                    ? 'A temporary password has been emailed to the new user.'
+                    : 'Email delivery is not configured. Notify the user to request a password reset.';
+            }
             document.getElementById('userForm').classList.add('opacity-50', 'pointer-events-none');
         }
 
@@ -139,10 +152,19 @@ let currentEditUserId = null; // Tracks if we are editing or adding
 
 function openUserModal(isEdit = false) {
     document.getElementById('userModal').classList.remove('hidden');
-    document.getElementById('otpSuccess').classList.add('hidden');
+    
+    const otpSuccessEl = document.getElementById('otpSuccess');
+    if (otpSuccessEl) otpSuccessEl.classList.add('hidden');
+    
     document.getElementById('userForm').classList.remove('opacity-50', 'pointer-events-none');
     
-    const modalTitle = document.querySelector('#userModal h3');
+    // Smart selector fallback to find your exact heading tag
+    const modalTitle = document.querySelector('#userModal h3') || 
+                       document.querySelector('#userModal h2') || 
+                       document.querySelector('#userModal h1') || 
+                       document.querySelector('#userModal .modal-title') || 
+                       document.getElementById('modalTitle');
+                       
     const submitBtn = document.getElementById('submitBtn');
     const emailInput = document.getElementById('userEmail');
 
@@ -150,16 +172,20 @@ function openUserModal(isEdit = false) {
         // ADD MODE
         currentEditUserId = null;
         document.getElementById('userForm').reset();
-        modalTitle.innerText = "Add New User";
-        submitBtn.innerText = "Save Account";
-        emailInput.disabled = false; // Email can be typed
-        emailInput.classList.remove('bg-gray-200', 'text-gray-500');
+        if (modalTitle) modalTitle.innerText = "Add New User";
+        if (submitBtn) submitBtn.innerText = "Save Account";
+        if (emailInput) {
+            emailInput.disabled = false;
+            emailInput.classList.remove('bg-gray-200', 'text-gray-500');
+        }
     } else {
         // EDIT MODE
-        modalTitle.innerText = "Edit User";
-        submitBtn.innerText = "Update Account";
-        emailInput.disabled = true; // Prevent changing email to avoid login issues
-        emailInput.classList.add('bg-gray-200', 'text-gray-500');
+        if (modalTitle) modalTitle.innerText = "Edit User";
+        if (submitBtn) submitBtn.innerText = "Update Account";
+        if (emailInput) {
+            emailInput.disabled = true;
+            emailInput.classList.add('bg-gray-200', 'text-gray-500');
+        }
     }
 }
 
@@ -170,7 +196,6 @@ function closeUserModal() {
 
 // --- EDIT LOGIC ---
 function editUser(userId) {
-    // 2. Fetch directly from memory instead of the API
     const user = loadedUsers.find(u => u.user_id === userId);
     
     if (!user) {
@@ -190,11 +215,10 @@ function editUser(userId) {
 function deleteUser(userId, userName) {
     userToDeleteId = userId;
     
-    // Set text and show modal
-    document.getElementById('deleteModalSubtitle').innerText = userName;
-    document.getElementById('deleteUserModal').classList.remove('hidden');
+    const subtitleEl = document.getElementById('deleteModalSubtitle');
+    if (subtitleEl) subtitleEl.innerText = userName;
     
-    // Attach event to the confirm button
+    document.getElementById('deleteUserModal').classList.remove('hidden');
     document.getElementById('btnConfirmDelete').onclick = executeDelete;
     
     if (window.lucide) lucide.createIcons();
