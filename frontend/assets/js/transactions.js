@@ -6,6 +6,28 @@ const state = {
     searchTerm: ''
 };
 
+// Run this check immediately to prevent unauthorized cache viewing
+(function() {
+    function checkAuthentication() {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            // Kick them straight back to login if token is missing
+            window.location.replace('index.html');
+        }
+    }
+
+    // Run on initial load
+    checkAuthentication();
+
+    // Run specifically when coming backward or forward out of browser cache
+    window.addEventListener('pageshow', function(event) {
+        // event.persisted is true if the page was restored from cache
+        if (event.persisted || !localStorage.getItem('token')) {
+            checkAuthentication();
+        }
+    });
+})();
+
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize reusable search module for item search
     SearchFilter.init({

@@ -100,8 +100,11 @@ async function loadHeader() {
 loadHeader();
 loadSidebar();
 
-function logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    window.location.href = 'index.html';
+function handleLogout() {
+    // 1. Clear all session items
+    localStorage.clear(); 
+    sessionStorage.clear();
+
+    // 2. Overwrite history entry so back button fails
+    window.location.replace('index.html');
 }
