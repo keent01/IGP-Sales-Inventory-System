@@ -6,7 +6,7 @@ function loadSidebar() {
     <div class="w-64 bg-white border-r border-gray-200 h-screen sticky top-0 flex-shrink-0 flex flex-col font-['Inter',_'Poppins',_sans-serif]">
         <div class="p-6 flex items-center gap-3 mb-4">
             <div class="p-1.5 bg-gray-50 rounded-lg border border-gray-100">
-                <img src="../assets/images/evsulogo.png" alt="Logo" class="w-8 h-8 object-contain">
+                <img src="./assets/images/evsulogo.png" alt="Logo" class="w-8 h-8 object-contain">
             </div>
             <div class="flex flex-col">
                 <h1 class="text-xl font-bold text-gray-900 tracking-tight">EVSU-OC</h1>
@@ -67,7 +67,7 @@ async function loadHeader() {
     if (!container) return;
 
     try {
-        const response = await fetch('../components/header.html');
+        const response = await fetch('components/header.html');
         const html = await response.text();
         container.innerHTML = html;
 

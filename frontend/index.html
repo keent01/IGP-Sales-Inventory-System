@@ -8,6 +8,14 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>body { font-family: 'Poppins', sans-serif; }</style>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script>
+        (function() {
+            // Initialize EmailJS with your Public Key
+            emailjs.init("UPB_Oxbe3Zge0ckGL");
+        })();
+    </script>
 </head>
 <body class="bg-gradient-to-br from-[#800000] to-[#600000] min-h-screen flex items-center justify-center p-4">
     <div class="w-full max-w-sm">
@@ -43,45 +51,81 @@
                     <button type="submit" id="loginBtn" class="w-full bg-gradient-to-r from-[#800000] to-[#600000] text-white py-3 rounded-lg font-bold text-sm uppercase tracking-wide hover:shadow-lg transition-all active:scale-95 flex justify-center items-center gap-2 mt-8">
                         <span id="btnText">Log In</span>
                     </button>
+
+                    <a href="#" onclick="openForgotModal()" class="text-sm text-amber-600 hover:underline">Forgot Password?</a>
                 </form>
             </div>
         </div>
     </div>
 
     
-    <div id="forgotPasswordModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl border border-gray-100">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold text-gray-800">Account Recovery</h3>
-                <button type="button" id="closeModalBtn" class="text-gray-400 hover:text-gray-600 font-bold text-xl">&times;</button>
-            </div>
-            
-            <div id="modalAlert" class="hidden p-3 rounded-lg border text-sm mb-4"></div>
+    <div id="forgotPasswordModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 relative border border-gray-100">
+            <button onclick="closeForgotModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
 
-            <div id="step1Container" class="space-y-4">
-                <p class="text-sm text-gray-600">Enter your institution email to receive a 6-digit verification code.</p>
+            <h3 class="text-lg font-bold text-[#800000] mb-2">Account Recovery</h3>
+            <p class="text-xs text-gray-500 mb-4">Follow the steps below to securely reset your password.</p>
+
+            <div id="forgotStep1" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Email Address</label>
-                    <input type="email" id="recoveryEmail" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[#800000]" placeholder="username@evsu.edu.ph">
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">EVSU Email Address</label>
+                    <input type="email" id="forgotEmail" placeholder="username@evsu.edu.ph" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#800000]">
                 </div>
-                <button type="button" id="sendOtpBtn" class="w-full bg-[#800000] text-white py-3 rounded-lg font-bold text-sm uppercase tracking-wide hover:bg-[#600000] transition-all">Send OTP</button>
+                <button id="btnSendOtp" onclick="handleRequestOtp()" 
+                    class="w-full bg-[#800000] text-white text-sm font-semibold py-2 rounded-lg hover:bg-[#600000] transition-colors">
+                    Send OTP
+                </button>
             </div>
 
-            <div id="step2Container" class="space-y-4 hidden">
-                <p class="text-sm text-gray-600">Enter the 6-digit code sent to your email and your new password.</p>
+            <div id="forgotStep2" class="space-y-4 hidden">
+                <p class="text-xs text-green-700 bg-green-50 p-2.5 rounded border border-green-200">
+                    An OTP has been sent to your email inbox. Please check your messages.
+                </p>
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">6-Digit OTP</label>
-                    <input type="text" id="recoveryOtp" maxlength="6" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[#800000] tracking-widest font-bold text-center" placeholder="••••••">
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Enter 6-Digit OTP</label>
+                    <input type="text" id="inputOtp" maxlength="6" placeholder="000000" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-center font-mono text-lg tracking-widest focus:outline-none focus:ring-1 focus:ring-[#800000]">
+                </div>
+                <button onclick="handleVerifyOtp()" 
+                    class="w-full bg-[#800000] text-white text-sm font-semibold py-2 rounded-lg hover:bg-[#600000] transition-colors">
+                    Verify Code
+                </button>
+            </div>
+
+            <div id="forgotStep3" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">New Password</label>
+                    <input type="password" id="forgotNewPassword" placeholder="••••••••" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#800000]">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1 mt-3">New Password</label>
-                    <input type="password" id="recoveryNewPassword" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[#800000]" placeholder="Enter new password">
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Confirm New Password</label>
+                    <input type="password" id="forgotConfirmPassword" placeholder="••••••••" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#800000]">
                 </div>
-                <button type="button" id="resetPasswordBtn" class="w-full bg-green-700 text-white py-3 rounded-lg font-bold text-sm uppercase tracking-wide hover:bg-green-800 transition-all">Reset Password</button>
+                <button id="btnResetPassword" onclick="handleUpdatePassword()" 
+                    class="w-full bg-green-700 text-white text-sm font-semibold py-2 rounded-lg hover:bg-green-800 transition-colors">
+                    Update Password
+                </button>
             </div>
         </div>
     </div>
 
+    <div id="forgotAlertModal" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-[60] p-4 animate-fade-in">
+        <div class="bg-white rounded-xl max-w-sm w-full p-5 text-center shadow-2xl border border-gray-100">
+            <div id="forgotAlertIcon" class="mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-3"></div>
+            <h3 id="forgotAlertTitle" class="text-base font-bold text-gray-900 mb-1"></h3>
+            <div id="forgotAlertMessage" class="text-xs text-gray-500 mb-4 leading-relaxed"></div>
+            <button onclick="closeForgotAlert()" class="w-full bg-gray-900 text-white text-xs font-semibold py-2 rounded-lg hover:bg-gray-800 transition-colors">
+                Dismiss
+            </button>
+        </div>
+    </div>
+
+    <script src="assets/js/forgot-password.js"></script>
     <script src="assets/js/api.js"></script>
     <script src="assets/js/login.js"></script>
 </body>

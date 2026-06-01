@@ -1,33 +1,3 @@
-// This is your existing fetch call to the backend
-const response = await apiFetch('/api/users/register', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-});
-
-const result = await response.json();
-
-if (response.ok) {
-    // BACKEND SUCCESS! Now trigger the email via EmailJS
-    emailjs.send("service_yd9wo1u", "template_r2ozgi6", {
-        to_email: payload.email,
-        to_name: payload.full_name,
-        temporary_password: result.temporary_password // Make sure your backend returns this!
-    })
-    .then(() => {
-        console.log("Welcome email sent successfully!");
-        alert("User created and password emailed successfully!");
-        // Close modal and refresh table here
-    })
-    .catch((error) => {
-        console.error("EmailJS Failed:", error);
-        alert("User created, but failed to send email.");
-    });
-} else {
-    // Handle backend errors (e.g., email already exists)
-    alert(result.detail || "Failed to create user.");
-}
-
 document.addEventListener('DOMContentLoaded', () => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     if (user.role !== 'Admin') {
@@ -158,21 +128,29 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
                 body: JSON.stringify(payload)
             });
             
-            const otpSuccessEl = document.getElementById('otpSuccess');
-            const otpNoteEl = document.getElementById('otpNote');
+            let emailStatusText = "Account created successfully.";
             
-            if (otpSuccessEl) otpSuccessEl.classList.remove('hidden');
-            if (otpNoteEl) {
-                // --- THIS IS THE NEW PART THAT SHOWS THE PASSWORD ON SCREEN ---
-                otpNoteEl.innerHTML = `
-                    <div class="mt-2 p-3 bg-amber-50 border border-amber-200 rounded text-amber-900 font-medium">
-                        User account created successfully!<br>
-                        <span class="text-xs text-gray-500 font-normal">Temporary Password:</span> 
-                        <strong class="text-sm font-mono tracking-wider text-red-700 bg-white px-2 py-0.5 rounded border border-gray-200 select-all">${result.temporary_password}</strong>
-                    </div>
-                `;
+            try {
+                // Ensure you replace with your actual keys
+                await emailjs.send("service_yd9wo1u", "template_r2ozgi6", {
+                    to_email: payload.email,
+                    to_name: payload.full_name,
+                    temporary_password: result.temporary_password
+                });
+                emailStatusText = "Password has been sent to the user's email.";
+            } catch (emailError) {
+                console.error("EmailJS Failed:", emailError);
+                emailStatusText = "Account created, but the email failed to send.";
             }
-            document.getElementById('userForm').classList.add('opacity-50', 'pointer-events-none');
+            
+            const successMessage = `
+                <div class="space-y-2 text-left text-center p-4 border rounded bg-gray-50">
+                    <p>${emailStatusText}</p>
+                </div>
+            `;
+            
+            showResponseModal("User Added", successMessage, "success");
+            closeUserModal();
         }
 
         loadUsers(); 
@@ -187,11 +165,6 @@ let currentEditUserId = null; // Tracks if we are editing or adding
 
 function openUserModal(isEdit = false) {
     document.getElementById('userModal').classList.remove('hidden');
-    
-    const otpSuccessEl = document.getElementById('otpSuccess');
-    if (otpSuccessEl) otpSuccessEl.classList.add('hidden');
-    
-    document.getElementById('userForm').classList.remove('opacity-50', 'pointer-events-none');
     
     // Smart selector fallback to find your exact heading tag
     const modalTitle = document.querySelector('#userModal h3') || 
@@ -213,7 +186,6 @@ function openUserModal(isEdit = false) {
             emailInput.disabled = false;
             emailInput.classList.remove('bg-gray-200', 'text-gray-500');
         }
-
         const resetContainer = document.getElementById('resetPasswordContainer');
         if (resetContainer) resetContainer.classList.add('hidden');
 
@@ -225,12 +197,10 @@ function openUserModal(isEdit = false) {
             emailInput.disabled = true;
             emailInput.classList.add('bg-gray-200', 'text-gray-500');
         }
-        // Show the reset password button when editing a user
         const resetContainer = document.getElementById('resetPasswordContainer');
         if (resetContainer) resetContainer.classList.remove('hidden');
     }
 }
-
 
 function closeUserModal() {
     document.getElementById('userModal').classList.add('hidden');
@@ -291,7 +261,6 @@ if (adminResetPwdBtn) {
     adminResetPwdBtn.addEventListener('click', async () => {
         if (!currentEditUserId) return;
         
-        // Optional: Confirm before resetting
         if (!confirm("Are you sure you want to generate a new password for this user? Their old password will immediately stop working.")) return;
 
         try {
@@ -302,23 +271,30 @@ if (adminResetPwdBtn) {
                 method: 'POST'
             });
             
-            // Show the generated password on the modal
-            const otpSuccessEl = document.getElementById('otpSuccess');
-            const otpNoteEl = document.getElementById('otpNote');
-            
-            if (otpSuccessEl) otpSuccessEl.classList.remove('hidden');
-            if (otpNoteEl) {
-                otpNoteEl.innerHTML = `
-                    <div class="mt-2 p-3 bg-amber-50 border border-amber-200 rounded text-amber-900 font-medium">
-                        Password Reset Successfully!<br>
-                        <span class="text-xs text-gray-500 font-normal">New Temporary Password:</span> 
-                        <strong class="text-sm font-mono tracking-wider text-red-700 bg-white px-2 py-0.5 rounded border border-gray-200 select-all">${result.temporary_password}</strong>
-                    </div>
-                `;
+            const user = loadedUsers.find(u => u.user_id === currentEditUserId);
+            let emailStatusText = "New password generated.";
+
+            try {
+                // Ensure you replace with your actual keys
+                await emailjs.send("service_yd9wo1u", "template_r2ozgi6", {
+                    to_email: user.email,
+                    to_name: user.full_name,
+                    temporary_password: result.temporary_password
+                });
+                emailStatusText = "New password has been sent to the user's email.";
+            } catch (emailError) {
+                console.error("EmailJS Failed on Reset:", emailError);
+                emailStatusText = "Failed to send email. Give the user this password manually.";
             }
             
-            // Re-initialize lucide icons for the button
-            if (window.lucide) lucide.createIcons();
+            const resetMessage = `
+                <div class="space-y-2 text-left text-center p-4 border rounded bg-gray-50">
+                    <p>${emailStatusText}</p>
+                </div>
+            `;
+
+            showResponseModal("Password Reset", resetMessage, "success");
+            closeUserModal();
             
         } catch (err) {
             showResponseModal("Error", err.message, "error");
@@ -329,3 +305,4 @@ if (adminResetPwdBtn) {
         }
     });
 }
+
