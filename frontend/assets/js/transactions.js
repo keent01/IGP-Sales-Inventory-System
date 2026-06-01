@@ -53,7 +53,7 @@ function renderItemGrid() {
         const isLowStock = item.stock_quantity <= item.low_stock_threshold;
 
         // Image source logic: prefer `item_photo` returned by the backend
-        const imageSrc = item.item_photo || item.item_photo_path || (item.photo_path ? `https://igp-sales-inventory-system-production.up.railway.app${item.photo_path}` : null);
+        const imageSrc = item.item_photo || item.item_photo_path || (item.photo_path ? `https://igp-sales-ingisystem-production.up.railway.app${item.photo_path}` : null);
 
         const formattedPrice = new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(Number(item.price || 0));
 
