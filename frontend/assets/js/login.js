@@ -130,7 +130,7 @@ document.getElementById('sendOtpBtn')?.addEventListener('click', async () => {
         hideModalAlert();
 
         // FIX: Explicitly target Port 8000 to prevent 405 Method Not Allowed
-        const response = await fetch('https://evsu-igp-backend.onrender.com/api/auth/forgot-password', {
+        const response = await fetch('https://igp-sales-inventory-system-production.up.railway.app/api/auth/forgot-password', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: email })
@@ -186,7 +186,7 @@ submitRecoveryBtn?.addEventListener('click', async () => {
         submitRecoveryBtn.disabled = true;
         submitRecoveryBtn.innerText = "Saving changes...";
 
-        const response = await fetch('https://evsu-igp-backend.onrender.com/api/auth/reset-password-with-otp', {
+        const response = await fetch('https://igp-sales-inventory-system-production.up.railway.app/api/auth/reset-password-with-otp', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
