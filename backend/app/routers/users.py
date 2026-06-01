@@ -64,11 +64,7 @@ def create_user(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
 
     # 1. Generate the random password
     otp_password = generate_otp()
-
-    # --- EMAIL SENDING COMPLETELY REMOVED ---
-    # We no longer attempt to send an email, preventing the 502 crash.
-    
-    # 2. Hash it and save to database
+ 
     hashed_password = auth.get_password_hash(otp_password)
 
     new_user = models.User(
