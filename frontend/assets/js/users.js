@@ -183,7 +183,11 @@ function openUserModal(isEdit = false) {
             emailInput.disabled = false;
             emailInput.classList.remove('bg-gray-200', 'text-gray-500');
         }
-    } else {
+
+        const resetContainer = document.getElementById('resetPasswordContainer');
+        if (resetContainer) resetContainer.classList.add('hidden');
+
+    }  else {
         // EDIT MODE
         if (modalTitle) modalTitle.innerText = "Edit User";
         if (submitBtn) submitBtn.innerText = "Update Account";
@@ -191,8 +195,12 @@ function openUserModal(isEdit = false) {
             emailInput.disabled = true;
             emailInput.classList.add('bg-gray-200', 'text-gray-500');
         }
+        // Show the reset password button when editing a user
+        const resetContainer = document.getElementById('resetPasswordContainer');
+        if (resetContainer) resetContainer.classList.remove('hidden');
     }
 }
+
 
 function closeUserModal() {
     document.getElementById('userModal').classList.add('hidden');
@@ -245,4 +253,49 @@ async function executeDelete() {
         closeDeleteModal();
         showResponseModal("Action Failed", error.message, "error");
     }
+}
+
+// --- ADMIN RESET PASSWORD LOGIC ---
+const adminResetPwdBtn = document.getElementById('adminResetPwdBtn');
+if (adminResetPwdBtn) {
+    adminResetPwdBtn.addEventListener('click', async () => {
+        if (!currentEditUserId) return;
+        
+        // Optional: Confirm before resetting
+        if (!confirm("Are you sure you want to generate a new password for this user? Their old password will immediately stop working.")) return;
+
+        try {
+            adminResetPwdBtn.disabled = true;
+            adminResetPwdBtn.innerHTML = `<div class="animate-spin rounded-full h-4 w-4 border-b-2 border-amber-700"></div> Generating...`;
+
+            const result = await apiFetch(`/api/users/${currentEditUserId}/reset-password`, {
+                method: 'POST'
+            });
+            
+            // Show the generated password on the modal
+            const otpSuccessEl = document.getElementById('otpSuccess');
+            const otpNoteEl = document.getElementById('otpNote');
+            
+            if (otpSuccessEl) otpSuccessEl.classList.remove('hidden');
+            if (otpNoteEl) {
+                otpNoteEl.innerHTML = `
+                    <div class="mt-2 p-3 bg-amber-50 border border-amber-200 rounded text-amber-900 font-medium">
+                        Password Reset Successfully!<br>
+                        <span class="text-xs text-gray-500 font-normal">New Temporary Password:</span> 
+                        <strong class="text-sm font-mono tracking-wider text-red-700 bg-white px-2 py-0.5 rounded border border-gray-200 select-all">${result.temporary_password}</strong>
+                    </div>
+                `;
+            }
+            
+            // Re-initialize lucide icons for the button
+            if (window.lucide) lucide.createIcons();
+            
+        } catch (err) {
+            showResponseModal("Error", err.message, "error");
+        } finally {
+            adminResetPwdBtn.disabled = false;
+            adminResetPwdBtn.innerHTML = `<i data-lucide="key" class="w-4 h-4"></i> Generate New Password`;
+            if (window.lucide) lucide.createIcons();
+        }
+    });
 }
