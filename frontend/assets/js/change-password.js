@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', initChangePassword);
 async function initChangePassword() {
     const token = localStorage.getItem('token');
     if (!token) {
-        window.location.href = 'index.html';
+        window.location.replace('index.html');
         return;
     }
 
@@ -29,7 +29,7 @@ async function initChangePassword() {
     } catch (error) {
         console.error("AuthService validation failed:", error);
         localStorage.clear();
-        window.location.href = 'index.html';
+        window.location.replace('index.html');
         return;
     }
 
@@ -41,10 +41,9 @@ async function initChangePassword() {
 
 async function handleChangePassword(event) {
     event.preventDefault();
-
-    const isFirstLogin = localStorage.getItem('force_password_change') === 'true';
     
-    // Grab values
+    const isFirstLogin = localStorage.getItem('force_password_change') === 'true';
+
     const newPassword = document.getElementById('newPassword').value.trim();
     const confirmPassword = document.getElementById('confirmPassword').value.trim();
 
@@ -54,11 +53,10 @@ async function handleChangePassword(event) {
         return;
     }
 
-    // 2. NEW CHECK: Password Complexity Validation
-    // Requires: 1 lowercase, 1 uppercase, 1 special character, and at least 8 characters long
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+    // 2. Password Complexity Validation
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
     if (!passwordRegex.test(newPassword)) {
-        showAlert('Password must be at least 8 characters, with 1 uppercase, 1 lowercase, and 1 special character.', 'error');
+        showAlert('Password must be at least 8 characters, with 1 uppercase, 1 lowercase, 1 number, and 1 special character.', 'error');
         return;
     }
 
@@ -69,16 +67,22 @@ async function handleChangePassword(event) {
         // 3. Build payload dynamically
         const payload = { new_password: newPassword };
         
-        // 4. Only attach the current_password if they are doing a normal change
+        // 4. ONLY attach the current_password if they are doing a normal change
         if (!isFirstLogin) {
             const currentPasswordInput = document.getElementById('currentPassword');
             if (currentPasswordInput) {
-                payload.current_password = currentPasswordInput.value.trim();
+                const currentPasswordValue = currentPasswordInput.value.trim();
+                if (!currentPasswordValue) {
+                    showAlert('Please enter your current password.', 'error');
+                    return;
+                }
+                payload.current_password = currentPasswordValue;
             }
         }
 
-        const response = await apiFetch('/api/users/change-password', {
-            method: 'POST',
+        // 5. Clean fetch call
+        const response = await fetch('https://igp-sales-inventory-system-production.up.railway.app/api/users/change-password', {
+            method: 'PUT', // Change to 'POST' if your Python backend uses @router.post
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -86,29 +90,26 @@ async function handleChangePassword(event) {
             body: JSON.stringify(payload)
         });
 
-        // SAFEGUARD: Check response content type before using .json() to stop JSON string crashes
         let result = {};
         const contentType = response.headers.get("content-type");
         if (contentType && contentType.includes("application/json")) {
             result = await response.json();
         } else {
-            throw new Error('Server did not return JSON. Verify your FastAPI backend is running on port 8000.');
+            throw new Error('Server did not return JSON. Verify your FastAPI backend is running properly.');
         }
 
         if (!response.ok) {
+            if (response.status === 422) console.error("Schema Details:", result.detail);
             throw new Error(result.detail || 'Failed to change password');
         }
 
         showAlert(result.message || "Password updated successfully!", 'success');
 
-        // 5. Clean up tracking flags and redirect to respective dashboard
+        // 6. Clean up tracking flags and redirect
         localStorage.removeItem('force_password_change');
         
-        const userString = localStorage.getItem('user');
-        const userData = userString ? JSON.parse(userString) : { role: 'User' };
-        
         setTimeout(() => {
-            window.location.href = 'dashboard.html';
+            window.location.replace('dashboard.html');
         }, 1200);
         
     } catch (error) {
