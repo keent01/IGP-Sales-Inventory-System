@@ -7,8 +7,8 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from .. import models, schemas
 from app.routers import auth
-from ..services import audit 
-
+from ..services import audit
+from app.routers.auth import get_password_hash, validate_password_complexity, verify_password, get_current_user
 router = APIRouter(prefix="/api/users", tags=["users"])
 
 def generate_otp(length=12):
@@ -80,6 +80,26 @@ def update_my_profile(
     db.refresh(current_user)
     
     return {"message": "Profile updated successfully", "full_name": current_user.full_name}
+
+@router.put("/change-password")
+def change_password(
+    payload: schemas.ChangePasswordRequest, 
+    current_user: models.User = Depends(get_current_user), 
+    db: Session = Depends(get_db)
+):
+    if not current_user.force_password_change:
+        if not payload.current_password:
+            raise HTTPException(status_code=422, detail="Current password required.")
+        if not verify_password(payload.current_password, current_user.password):
+            raise HTTPException(status_code=400, detail="Invalid current password.")
+
+    validate_password_complexity(payload.new_password)
+    current_user.password = get_password_hash(payload.new_password)
+    current_user.force_password_change = 0 
+    
+    db.add(current_user)
+    db.commit()
+    return {"status": "success", "message": "Password updated successfully!"}
 
 @router.put("/{user_id}")
 def update_user(
